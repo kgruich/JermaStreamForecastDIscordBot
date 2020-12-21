@@ -2,16 +2,15 @@
 
 const client = new Discord.Client();
 
-const targetChannel = client.channels.cache.find(channel => channel.id === 789623909044977695);
+const targetChannelId = 789623909044977695;
 
 client.once('ready', () => {
     console.log('I am ready!');
 });
 
 client.on('message', message => {
-    if (message.channel == targetChannel) {
+    if (message.channel.id == targetChannelId) {
         message.react('📒');
-        console.log(message.content);
     }
 })
 
