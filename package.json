@@ -1,0 +1,23 @@
+{
+  "name": "jermastreamforecastdiscordbot",
+  "version": "1.0.0",
+  "description": "monitors and parses stream time updates",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kgruich/JermaStreamForecastDIscordBot.git"
+  },
+  "author": "Porkako",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kgruich/JermaStreamForecastDIscordBot/issues"
+  },
+  "homepage": "https://github.com/kgruich/JermaStreamForecastDIscordBot#readme",
+  "dependencies": {
+    "discord.js": "^12.5.1",
+    "jshint": "^2.12.0"
+  }
+}
