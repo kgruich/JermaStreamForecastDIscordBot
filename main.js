@@ -15,4 +15,6 @@ client.on('message', message => {
     }
 })
 
-client.login('NzkwMzgyMDc2NzU1MDUwNTM3.X9_yqw.HERpLyOZlcSHEoWFJ4Gs5ZjzAWU');
+const fs = require('fs');
+const token = fs.readFileSync('token.txt', 'utf8');
+client.login(token);
