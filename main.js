@@ -1,5 +1,9 @@
-﻿//import custom Time class
-const Time = require('./time.js')
+﻿//whole script strict mode, for fun and for optimization
+'use strict'
+
+//import custom Time class
+const times = require('./time.js')
+const Time = times.Time;
 
 //helper functions
 
@@ -15,7 +19,7 @@ function cutout2Char(origString, index) {
 //finds the estimated time (with hours, minutes, and the period) in the message
 function messageToTime(m) {
 
-    var rawText = String(m.content).toLowerCase();
+    var rawText = m.content.toLowerCase();
     console.log(rawText);
     var amSearch = rawText.search("am");
     var pmSearch = rawText.search("pm");
@@ -29,7 +33,8 @@ function messageToTime(m) {
     var amCount = 0;
     var pmCount = 0;
     var cutText = rawText;
-    var timeDigit;
+    var time = new Time(0, 0, false);
+
     while (amSearch !== -1 || pmSearch !== -1) {
         if (amSearch !== -1) {
             amCount++;
@@ -37,16 +42,18 @@ function messageToTime(m) {
             var possibleTime = cutText.charAt(amSearch - 1);
             if (possibleTime.toLowerCase() === possibleTime.toUpperCase()) {
                 timeIndex = amSearch - 1;
-                timeDigit = possibleTime;
+                time.hour = possibleTime;
 
-                if (timeDigit === 0) {
-                    timeDigit = cutText.slice(timeIndex - 3, timeIndex);
+                if (time.hour === 0) {
+                    //use minutes
+                    //timeDigit = cutText.slice(timeIndex - 3, timeIndex);
                 }
-                if (timeDigit === ' ') {
-                    timeDigit = cutText.slice(timeIndex - 1, timeIndex);
+                if (time.hour === ' ') {
+                    //add 0 case exceptions
+                    time.hour = cutText.charAt(timeIndex - 1);
                 }
 
-                return timeDigit + 'am';
+                return time;
             }
 
             cutText = cutout2Char(cutText, amSearch);
@@ -114,7 +121,8 @@ client.on('message', message => {
         var timeEstimate;
         var timeActual;
         timeEstimate = messageToTime(message);
-        console.log(timeEstimate);
+
+        console.log(timeEstimate.readout());
 
         /*
         if (timeEstimate === 'N/A') {
@@ -127,5 +135,6 @@ client.on('message', message => {
 })
 
 const fs = require('fs');
+const { time } = require('console');
 const token = fs.readFileSync('token.txt', 'utf8');
 client.login(token);

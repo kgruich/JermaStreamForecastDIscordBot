@@ -1,7 +1,7 @@
 class Time {
     constructor(singleDigit, threeDigit, period) {
         this.hour = 0;
-        this.minutes = 0;
+        this.minute = 0;
         //true = pm, false = am
         this.period = true;
     }
@@ -12,11 +12,11 @@ class Time {
     get hour() {
         return this.hour;
     }
-    set minutes(num) {
-        this.minutes = num;
+    set minute(num) {
+        this.minute = num;
     }
-    get minutes() {
-        return this.minutes;
+    get minute() {
+        return this.minute;
     }
     set period(bool) {
         this.period = bool;
@@ -25,6 +25,26 @@ class Time {
         return this.period;
     }
     //methods
+    readout() {
+        var fullString;
+        fullString = this.hour + ':';
+
+        if (this.minute < 10) {
+            fullString.concat('0' + this.minute)
+        }
+        else {
+            fullString.concat(this.minute)
+        }
+
+        if (period) {
+            fullString.concat(' pm')
+        }
+        else {
+            fullString.concat(' am')
+        }
+
+        return fullString;
+    }
     ESTtoUTC() {
         if (period) {
             if (this.hour < 7) {
@@ -41,7 +61,7 @@ class Time {
     }
     dateToTime(Date) {
         this.hour = Date.prototype.getUTCHours();
-        this.minutes = Date.prototype.getUTCMinutes();
+        this.minute = Date.prototype.getUTCMinutes();
     }
 }
 
