@@ -1,13 +1,9 @@
-﻿const Discord = require('discord.js');
+﻿//import custom Time class
+const Time = require('./time.js')
 
-const client = new Discord.Client();
+//helper functions
 
-const targetChannelId = 789623909044977695;
-
-client.once('ready', () => {
-    console.log('I am ready!');
-});
-
+//cuts out 2 characters out of a string at the inded (used to cut out pm and am)
 function cutout2Char(origString, index) {
     let firstPart = origString.substr(0, index);
     let lastPart = origString.substr(index + 2);
@@ -16,6 +12,7 @@ function cutout2Char(origString, index) {
     return newString;
 }
 
+//finds the estimated time (with hours, minutes, and the period) in the message
 function messageToTime(m) {
 
     var rawText = String(m.content).toLowerCase();
@@ -31,23 +28,28 @@ function messageToTime(m) {
 
     var amCount = 0;
     var pmCount = 0;
-    var cutText;
+    var cutText = rawText;
+    var timeDigit;
     while (amSearch !== -1 || pmSearch !== -1) {
         if (amSearch !== -1) {
             amCount++;
             
-            var possibleTime = rawText.charAt(amSearch - 1);
+            var possibleTime = cutText.charAt(amSearch - 1);
             if (possibleTime.toLowerCase() === possibleTime.toUpperCase()) {
                 timeIndex = amSearch - 1;
+                timeDigit = possibleTime;
 
-                if (timeIndex === 0) {
-                    return rawText.slice(timeIndex - 3, timeIndex);
+                if (timeDigit === 0) {
+                    timeDigit = cutText.slice(timeIndex - 3, timeIndex);
+                }
+                if (timeDigit === ' ') {
+                    timeDigit = cutText.slice(timeIndex - 1, timeIndex);
                 }
 
-                return timeIndex;
+                return timeDigit + 'am';
             }
 
-            cutText = cutout2Char(rawText, amSearch);
+            cutText = cutout2Char(cutText, amSearch);
             
             
             console.log(amCount + " am count");
@@ -55,18 +57,23 @@ function messageToTime(m) {
         if (pmSearch !== -1) {
             pmCount++;
 
-            var possibleTime = rawText.charAt(pmSearch - 1);
+            var possibleTime = cutText.charAt(pmSearch - 1);
             if (possibleTime.toLowerCase() === possibleTime.toUpperCase()) {
                 timeIndex = pmSearch - 1;
+                timeDigit = possibleTime;
 
-                if (timeIndex === 0) {
-                    return rawText.slice(timeIndex - 3, timeIndex);
+                if (timeDigit === 0) {
+                    timeDigit = cutText.slice(timeIndex - 3, timeIndex);
+                    //timeDigit.
+                }
+                if (timeDigit === ' ') {
+                    timeDigit = cutText.slice(timeIndex - 1, timeIndex);
                 }
 
-                return timeIndex;
+                return timeDigit + 'pm';
             }
             else {
-                cutText = cutout2Char(rawText, pmSearch);
+                cutText = cutout2Char(cutText, pmSearch);
 
                 console.log(pmCount + " pm count");
             }
@@ -78,16 +85,30 @@ function messageToTime(m) {
     return 'N/A';
 }
 
+//checks if the message is about Jerma going live
 function checkIfLiveMessage(m) {
 
 }
 
-function getMessageTime(m) {
+//compare date object with Time to find difference
+function timeCompare(timeE, timeA) {
 
 }
 
+//acutal dicord API interaction
+const Discord = require('discord.js');
+
+const client = new Discord.Client();
+
+//the announcements channel I monitor for Jerma updates, forwarded from the Jerma Discord Server
+const targetChannelId = 789623909044977695;
+
+client.once('ready', () => {
+    console.log('I am ready!');
+});
+
 client.on('message', message => {
-    if (message.channel.id == targetChannelId) {
+    if (message.channel.id == targetChannelId && !message.content.startsWith('!') && !message.author.bot) {
         message.react('📒');
 
         var timeEstimate;
@@ -95,11 +116,13 @@ client.on('message', message => {
         timeEstimate = messageToTime(message);
         console.log(timeEstimate);
 
+        /*
         if (timeEstimate === 'N/A') {
             if (checkIfLiveMessage(message)) {
-                timeActual = getMessageTime(message);
+                timeActual = message.createdAt;
             }
         }
+        */
     }
 })
 
