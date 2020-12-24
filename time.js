@@ -1,52 +1,61 @@
 class Time {
     constructor(singleDigit, threeDigit, period) {
         this.hour = 0;
-        this.minute = 0;
+        //2 digits for minutes
+        this.firstMinute = 0;
+        this.secondMinute = 0;
+        //total minutes
+        this.minutes = 0;
         //true = pm, false = am
         this.period = true;
     }
     //getters and setters
-    set hour(num) {
-        this.hour = num;
+    set hr(hr) {
+        this.hour = hr;
     }
-    get hour() {
+    get hr() {
         return this.hour;
     }
-    set minute(num) {
-        this.minute = num;
+    set min1(min1) {
+        this.firstMinute = min1;
     }
-    get minute() {
-        return this.minute;
+    get min1() {
+        return this.firstMinute;
     }
-    set period(bool) {
-        this.period = bool;
+    set min2(min2) {
+        this.secondMinute = min2;
     }
-    get period() {
+    get min2() {
+        return this.secondMinute;
+    }
+    set mins(mins) {
+        this.minutes = mins;
+    }
+    get mins() {
+        return this.minutes;
+    }
+    set prd(prd) {
+        this.period = prd;
+    }
+    get prd() {
         return this.period;
     }
     //methods
     readout() {
         var fullString;
-        fullString = this.hour + ':';
+        fullString = this.hour + ':' + this.minutes;
 
-        if (this.minute < 10) {
-            fullString.concat('0' + this.minute)
+        if (this.period) {
+            fullString += ' pm';
         }
         else {
-            fullString.concat(this.minute)
-        }
-
-        if (period) {
-            fullString.concat(' pm')
-        }
-        else {
-            fullString.concat(' am')
+            fullString += ' am';
         }
 
         return fullString;
     }
     ESTtoUTC() {
-        if (period) {
+        if (this.period) {
             if (this.hour < 7) {
                 this.hour = this.hour + 5;
             }
@@ -59,9 +68,10 @@ class Time {
             this.hour = this.hour + 5;
         }
     }
+    //doesn't work with new minute digit set up
     dateToTime(Date) {
         this.hour = Date.prototype.getUTCHours();
-        this.minute = Date.prototype.getUTCMinutes();
+        //this.minute = Date.prototype.getUTCMinutes();
     }
 }
 

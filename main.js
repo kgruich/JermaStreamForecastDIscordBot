@@ -2,8 +2,7 @@
 'use strict'
 
 //import custom Time class
-const times = require('./time.js')
-const Time = times.Time;
+const Time = require('./time.js')
 
 //helper functions
 
@@ -42,24 +41,40 @@ function messageToTime(m) {
             var possibleTime = cutText.charAt(amSearch - 1);
             if (possibleTime.toLowerCase() === possibleTime.toUpperCase()) {
                 timeIndex = amSearch - 1;
-                time.hour = possibleTime;
+                time.hr = possibleTime;
+                time.period = false;
 
-                if (time.hour === 0) {
-                    //use minutes
-                    //timeDigit = cutText.slice(timeIndex - 3, timeIndex);
+                //check for 0 am format
+                if (possibleTime == ' ') {
+                    //check for 0:00 am format (no support for times that don't end in 0, like 9:35)
+                    if (cutText.charAt(timeIndex - 1) === 0) {
+                        time.hr = cutText.charAt(timeIndex - 4);
+                        //time.min1 = cutText.charAt(timeIndex - 2);
+                        //time.min1 = cutText.charAt(timeIndex - 1);
+                        time.mins = cutText.charAt(timeIndex - 2) + cutText.charAt(timeIndex - 1);
+                        //console.log(cutText.charAt(timeIndex - 2) + ' ' + cutText.charAt(timeIndex - 1))
+                    }
+                    else {
+                        time.hr = cutText.charAt(timeIndex - 1);
+                    }
                 }
-                if (time.hour === ' ') {
-                    //add 0 case exceptions
-                    time.hour = cutText.charAt(timeIndex - 1);
+                //check for 0:00am format
+                else if (possibleTime == 0) {
+                    time.hr = cutText.charAt(timeIndex - 3);
+                    //time.min1 = cutText.charAt(timeIndex - 1);
+                    //time.min1 = cutText.charAt(timeIndex);
+                    time.mins = cutText.charAt(timeIndex - 1) + cutText.charAt(timeIndex);
+                    //console.log(cutText.charAt(timeIndex - 1) + ' ' + cutText.charAt(timeIndex) + ' ' + time.mins + ' ' + parseInt(cutText.slice(timeIndex - 1, timeIndex)));
                 }
-
+                
                 return time;
             }
 
-            cutText = cutout2Char(cutText, amSearch);
-            
-            
-            console.log(amCount + " am count");
+            else {
+                cutText = cutout2Char(cutText, amSearch);
+                
+                console.log(amCount + " am count");
+            }
         }
         if (pmSearch !== -1) {
             pmCount++;
@@ -67,18 +82,29 @@ function messageToTime(m) {
             var possibleTime = cutText.charAt(pmSearch - 1);
             if (possibleTime.toLowerCase() === possibleTime.toUpperCase()) {
                 timeIndex = pmSearch - 1;
-                timeDigit = possibleTime;
+                time.hr = possibleTime;
+                time.period = true;
 
-                if (timeDigit === 0) {
-                    timeDigit = cutText.slice(timeIndex - 3, timeIndex);
-                    //timeDigit.
+                //check for 0:00pm format
+                if (time.hr === 0) {
+                    time.hr = cutText.charAt(timeIndex - 3);
+                    time.min = cutText.slice(timeIndex - 2, timeIndex);
                 }
-                if (timeDigit === ' ') {
-                    timeDigit = cutText.slice(timeIndex - 1, timeIndex);
+                //check for 0 pm format
+                if (time.hr === ' ') {
+                    //check for 0:00 pm format
+                    if (timeIndex - 1 === 0) {
+                        time.hr = cutText.charAt(timeIndex - 4);
+                        time.min = cutText.slice(timeIndex - 3, timeIndex - 1);
+                    }
+                    else {
+                        time.hr = cutText.charAt(timeIndex - 1);
+                    }
                 }
 
-                return timeDigit + 'pm';
+                return time;
             }
+
             else {
                 cutText = cutout2Char(cutText, pmSearch);
 
@@ -102,13 +128,13 @@ function timeCompare(timeE, timeA) {
 
 }
 
-//acutal dicord API interaction
+//actual dicord API interaction
 const Discord = require('discord.js');
 
 const client = new Discord.Client();
 
 //the announcements channel I monitor for Jerma updates, forwarded from the Jerma Discord Server
-const targetChannelId = 789623909044977695;
+const targetChannelId = 789623849397256204;
 
 client.once('ready', () => {
     console.log('I am ready!');
@@ -123,6 +149,7 @@ client.on('message', message => {
         timeEstimate = messageToTime(message);
 
         console.log(timeEstimate.readout());
+        console.log(timeEstimate.hr + ':' + timeEstimate.mins + ' ' + timeEstimate.prd);
 
         /*
         if (timeEstimate === 'N/A') {
