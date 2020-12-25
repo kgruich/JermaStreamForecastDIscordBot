@@ -45,14 +45,11 @@ function messageToTime(m) {
                 time.period = false;
 
                 //check for 0 am format
-                if (possibleTime == ' ') {
+                if (possibleTime == ' ' && cutText.charAt(timeIndex - 1).toLowerCase() === cutText.charAt(timeIndex - 1).toUpperCase()) {
                     //check for 0:00 am format (no support for times that don't end in 0, like 9:35)
-                    if (cutText.charAt(timeIndex - 1) === 0) {
+                    if (cutText.charAt(timeIndex - 1) == 0) {
                         time.hr = cutText.charAt(timeIndex - 4);
-                        //time.min1 = cutText.charAt(timeIndex - 2);
-                        //time.min1 = cutText.charAt(timeIndex - 1);
                         time.mins = cutText.charAt(timeIndex - 2) + cutText.charAt(timeIndex - 1);
-                        //console.log(cutText.charAt(timeIndex - 2) + ' ' + cutText.charAt(timeIndex - 1))
                     }
                     else {
                         time.hr = cutText.charAt(timeIndex - 1);
@@ -61,10 +58,7 @@ function messageToTime(m) {
                 //check for 0:00am format
                 else if (possibleTime == 0) {
                     time.hr = cutText.charAt(timeIndex - 3);
-                    //time.min1 = cutText.charAt(timeIndex - 1);
-                    //time.min1 = cutText.charAt(timeIndex);
                     time.mins = cutText.charAt(timeIndex - 1) + cutText.charAt(timeIndex);
-                    //console.log(cutText.charAt(timeIndex - 1) + ' ' + cutText.charAt(timeIndex) + ' ' + time.mins + ' ' + parseInt(cutText.slice(timeIndex - 1, timeIndex)));
                 }
                 
                 return time;
@@ -85,21 +79,24 @@ function messageToTime(m) {
                 time.hr = possibleTime;
                 time.period = true;
 
-                //check for 0:00pm format
-                if (time.hr === 0) {
-                    time.hr = cutText.charAt(timeIndex - 3);
-                    time.min = cutText.slice(timeIndex - 2, timeIndex);
-                }
-                //check for 0 pm format
-                if (time.hr === ' ') {
-                    //check for 0:00 pm format
-                    if (timeIndex - 1 === 0) {
+                //check for 0 am format
+                if (possibleTime == ' ' && cutText.charAt(timeIndex - 1).toLowerCase() === cutText.charAt(timeIndex - 1).toUpperCase()) {
+                    console.log("check 3");
+                    //check for 0:00 am format (no support for times that don't end in 0, like 9:35)
+                    if (cutText.charAt(timeIndex - 1) == 0) {
+                        console.log("check 4");
                         time.hr = cutText.charAt(timeIndex - 4);
-                        time.min = cutText.slice(timeIndex - 3, timeIndex - 1);
+                        time.mins = cutText.charAt(timeIndex - 2) + cutText.charAt(timeIndex - 1);
                     }
                     else {
+                        console.log("check 5");
                         time.hr = cutText.charAt(timeIndex - 1);
                     }
+                }
+                //check for 0:00am format
+                else if (possibleTime == 0) {
+                    time.hr = cutText.charAt(timeIndex - 3);
+                    time.mins = cutText.charAt(timeIndex - 1) + cutText.charAt(timeIndex);
                 }
 
                 return time;

@@ -43,7 +43,14 @@ class Time {
     //methods
     readout() {
         var fullString;
-        fullString = this.hour + ':' + this.minutes;
+        fullString = this.hour + ':';
+
+        if (this.minutes === 0) {
+            fullString += '00';
+        }
+        else {
+            fullString += this.minutes;
+        }
 
         if (this.period) {
             fullString += ' pm';
