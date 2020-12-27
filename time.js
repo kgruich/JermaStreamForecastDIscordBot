@@ -1,13 +1,13 @@
 class Time {
-    constructor(singleDigit, threeDigit, period) {
+    constructor() {
+        //hours
         this.hour = 0;
-        //2 digits for minutes
-        this.firstMinute = 0;
-        this.secondMinute = 0;
         //total minutes
         this.minutes = 0;
         //true = pm, false = am
-        this.period = true;
+        this.period = false;
+        //if the time has been set or not
+        this.status = false;
     }
     //getters and setters
     set hr(hr) {
@@ -16,30 +16,28 @@ class Time {
     get hr() {
         return this.hour;
     }
-    set min1(min1) {
-        this.firstMinute = min1;
+
+    set min(min) {
+        this.minutes = min;
     }
-    get min1() {
-        return this.firstMinute;
-    }
-    set min2(min2) {
-        this.secondMinute = min2;
-    }
-    get min2() {
-        return this.secondMinute;
-    }
-    set mins(mins) {
-        this.minutes = mins;
-    }
-    get mins() {
+    get min() {
         return this.minutes;
     }
+
     set prd(prd) {
         this.period = prd;
     }
     get prd() {
         return this.period;
     }
+
+    set sts(sts) {
+        this.status = sts;
+    }
+    get sts() {
+        return this.status;
+    }
+
     //methods
     readout() {
         var fullString;
@@ -61,24 +59,56 @@ class Time {
 
         return fullString;
     }
-    ESTtoUTC() {
+    //unused
+    PSTtoUTC() {
         if (this.period) {
-            if (this.hour < 7) {
-                this.hour = this.hour + 5;
+            if (this.hour < 4) {
+                this.hour = this.hour + 8;
             }
             else {
-                this.hour = (this.hour - 12) + 5;
+                this.hour = (this.hour - 12) + 8;
                 this.period = !this.period; 
             }
         }
         else {
-            this.hour = this.hour + 5;
+            this.hour = this.hour + 8;
         }
     }
-    //doesn't work with new minute digit set up
+    to24Hour() {
+        if (!this.period && this.hour === 12) {
+            //12am edge
+            this.hour = 0;
+        }
+        else if (this.period) {
+            this.hour = (this.hour % 12) + 12;
+        }
+    }
     dateToTime(Date) {
-        this.hour = Date.prototype.getUTCHours();
-        //this.minute = Date.prototype.getUTCMinutes();
+        //time is converted to PST
+        var UTCHour = Date.getUTCHours()
+        var PSThour;
+        if (UTCHour > 0 || UTCHour < 8) {
+            this.period = true;
+            PSThour = UTCHour + 4;
+        }
+        else {
+            if (UTCHour < 12) {
+                this.period = false;
+            }
+            else {
+                this.period = true;
+            }
+            PSThour = UTCHour - 8;
+        }
+
+        this.hour = PSThour;
+        this.minutes = Date.getUTCMinutes();
+    }
+    reset() {
+        this.hour = 0;
+        this.minutes = 0;
+        this.period = false;
+        this.status = false;
     }
 }
 

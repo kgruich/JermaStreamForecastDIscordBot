@@ -32,8 +32,9 @@ function messageToTime(m) {
     var amCount = 0;
     var pmCount = 0;
     var cutText = rawText;
-    var time = new Time(0, 0, false);
+    var time = new Time();
 
+    //while loop in case there are multiple 'am' or 'pm' cutting them from the text and running the loop again
     while (amSearch !== -1 || pmSearch !== -1) {
         if (amSearch !== -1) {
             amCount++;
@@ -42,14 +43,16 @@ function messageToTime(m) {
             if (possibleTime.toLowerCase() === possibleTime.toUpperCase()) {
                 timeIndex = amSearch - 1;
                 time.hr = possibleTime;
+                time.min = 0;
                 time.period = false;
 
                 //check for 0 am format
                 if (possibleTime == ' ' && cutText.charAt(timeIndex - 1).toLowerCase() === cutText.charAt(timeIndex - 1).toUpperCase()) {
                     //check for 0:00 am format (no support for times that don't end in 0, like 9:35)
+                    //TODO: make 2 digit hours work (10, 11, 12) (though they are unlikely to be used)
                     if (cutText.charAt(timeIndex - 1) == 0) {
                         time.hr = cutText.charAt(timeIndex - 4);
-                        time.mins = cutText.charAt(timeIndex - 2) + cutText.charAt(timeIndex - 1);
+                        time.min = cutText.charAt(timeIndex - 2) + cutText.charAt(timeIndex - 1);
                     }
                     else {
                         time.hr = cutText.charAt(timeIndex - 1);
@@ -58,8 +61,14 @@ function messageToTime(m) {
                 //check for 0:00am format
                 else if (possibleTime == 0) {
                     time.hr = cutText.charAt(timeIndex - 3);
-                    time.mins = cutText.charAt(timeIndex - 1) + cutText.charAt(timeIndex);
+                    time.min = cutText.charAt(timeIndex - 1) + cutText.charAt(timeIndex);
                 }
+                
+                if (time.hr.toLowerCase() !== time.hr.toUpperCase() || time.min.toString().toLowerCase() !== time.min.toString().toUpperCase()) {
+                    time.sts = false;
+                    return time;
+                }
+                time.sts = true;
                 
                 return time;
             }
@@ -77,27 +86,31 @@ function messageToTime(m) {
             if (possibleTime.toLowerCase() === possibleTime.toUpperCase()) {
                 timeIndex = pmSearch - 1;
                 time.hr = possibleTime;
+                time.min = 0;
                 time.period = true;
 
                 //check for 0 am format
                 if (possibleTime == ' ' && cutText.charAt(timeIndex - 1).toLowerCase() === cutText.charAt(timeIndex - 1).toUpperCase()) {
-                    console.log("check 3");
                     //check for 0:00 am format (no support for times that don't end in 0, like 9:35)
                     if (cutText.charAt(timeIndex - 1) == 0) {
-                        console.log("check 4");
                         time.hr = cutText.charAt(timeIndex - 4);
-                        time.mins = cutText.charAt(timeIndex - 2) + cutText.charAt(timeIndex - 1);
+                        time.min = cutText.charAt(timeIndex - 2) + cutText.charAt(timeIndex - 1);
                     }
                     else {
-                        console.log("check 5");
                         time.hr = cutText.charAt(timeIndex - 1);
                     }
                 }
                 //check for 0:00am format
                 else if (possibleTime == 0) {
                     time.hr = cutText.charAt(timeIndex - 3);
-                    time.mins = cutText.charAt(timeIndex - 1) + cutText.charAt(timeIndex);
+                    time.min = cutText.charAt(timeIndex - 1) + cutText.charAt(timeIndex);
                 }
+
+                if (time.hr.toLowerCase() !== time.hr.toUpperCase() || time.min.toString().toLowerCase() !== time.min.toString().toUpperCase()) {
+                    time.sts = false;
+                    return time;
+                }
+                time.sts = true;
 
                 return time;
             }
@@ -111,18 +124,57 @@ function messageToTime(m) {
         amSearch = cutText.search("am");
         pmSearch = cutText.search("pm");
     }
+
     console.log(cutText + " CUT TEXT");
-    return 'N/A';
+    time.sts = false;
+    return time;
 }
 
-//checks if the message is about Jerma going live
+//checks if the message is about Jerma going live, returns true if it is
 function checkIfLiveMessage(m) {
-
+    var rawText = m.content.toLowerCase();
+    if (rawText.search('#stream') === -1) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
-//compare date object with Time to find difference
+//compare two time objects to find the difference
 function timeCompare(timeE, timeA) {
+    var difference = new Time();
+    var hourDifference = timeE.hr - timeA.hr;
+    var minuteDifference = timeE.min - timeA.min;
 
+    difference.hr = hourDifference;
+    difference.min = minuteDifference;
+    difference.sts = true;
+
+    return difference;
+}
+
+//calculated how many minutes late or early
+function timeCalculate(diff) {
+    var totalMinutes = {
+        number: 0,
+        status: ''
+    };
+
+    totalMinutes.number += (60 * diff.hr);
+    totalMinutes.number += diff.min;
+
+    if (totalMinutes.number === 0) {
+        totalMinutes.status = 'onTime';
+    }
+    else if (totalMinutes.number < 0) {
+        totalMinutes.status = 'late';
+    }
+    else {
+        totalMinutes.status = 'early'
+    }
+
+    return totalMinutes;
 }
 
 //actual dicord API interaction
@@ -137,24 +189,43 @@ client.once('ready', () => {
     console.log('I am ready!');
 });
 
+var timeEstimate = new Time();
+var timeActual = new Time();
+timeActual.sts = false;
+
 client.on('message', message => {
+    //make sure it is not a command, or a bot message, and in the correct channel
     if (message.channel.id == targetChannelId && !message.content.startsWith('!') && !message.author.bot) {
+        //react so I can verify a message has been tracked
         message.react('📒');
 
-        var timeEstimate;
-        var timeActual;
-        timeEstimate = messageToTime(message);
-
-        console.log(timeEstimate.readout());
-        console.log(timeEstimate.hr + ':' + timeEstimate.mins + ' ' + timeEstimate.prd);
-
-        /*
-        if (timeEstimate === 'N/A') {
-            if (checkIfLiveMessage(message)) {
-                timeActual = message.createdAt;
-            }
+        //if message contains #stream
+        if (checkIfLiveMessage(message)) {
+            console.log('live message');
+            timeActual.dateToTime(message.createdAt);
+            timeActual.to24Hour();
+            timeActual.sts = true;
+            console.log(timeActual.hr + ':' + timeActual.min);
         }
-        */
+        //if message contains any of the following: X am, X pm, Xam, Xpm, X:XX am, X:XX pm, X:XXam, X:XXpm
+        else if (messageToTime(message).sts){
+            timeEstimate = messageToTime(message);
+            console.log(timeEstimate.hr + ':' + timeEstimate.min + ' ' + timeEstimate.prd);
+            timeEstimate.to24Hour();
+            console.log(timeEstimate.hr + ':' + timeEstimate.min + ' ' + timeEstimate.prd);
+        }
+        //likely unnecessary, just in case
+        else {
+            return;
+        }
+        if (timeEstimate.sts && timeActual.sts) {
+            var difference = timeCalculate(timeCompare(timeEstimate, timeActual));
+
+            console.log(difference.number + ' ' + difference.status);
+
+            timeEstimate.sts = false;
+            timeActual.sts = false;
+        }
     }
 })
 
